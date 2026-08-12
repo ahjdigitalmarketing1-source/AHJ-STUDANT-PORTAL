@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHJ Institute Student Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        * { box-sizing: border-box; }
+        html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+        button, a, input, select, textarea { touch-action: manipulation; }
+        table { min-width: 640px; }
+        .overflow-x-auto { -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+
+        @media (max-width: 1024px) {
+            #studentWrapper main > header, #appWrapper main > header { padding-left: 1rem !important; padding-right: 1rem !important; }
+            #studentWrapper main > div.flex-1, #appWrapper main > div.flex-1 { padding: 1rem !important; }
+        }
+
+        @media (max-width: 767px) {
+            body { font-size: 14px; }
+            #loginScreen, #adminModal { padding: 12px !important; align-items: center; }
+            #loginScreen > div, #adminModal > div { width: 100% !important; max-width: 100% !important; padding: 1.25rem !important; border-radius: 1.25rem !important; max-height: calc(100vh - 24px); overflow-y: auto; }
+            
+            #studentWrapper, #appWrapper { width: 100%; height: 100dvh; min-height: 100dvh; flex-direction: column !important; overflow: hidden !important; }
+            #studentWrapper > aside, #appWrapper > aside { width: 100% !important; height: auto !important; max-height: 200px; flex: 0 0 auto !important; overflow-y: auto; border-right: 0 !important; border-bottom: 1px solid rgb(30 41 59); }
+            #studentWrapper aside nav, #appWrapper aside nav { padding: 0.5rem !important; display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.35rem !important; }
+            #studentWrapper aside nav button, #appWrapper aside nav button { width: 100% !important; min-height: 40px; padding: 0.5rem !important; font-size: 0.75rem !important; line-height: 1.15; text-align: left; }
+            
+            #studentWrapper > main, #appWrapper > main { width: 100%; min-width: 0; min-height: 0; flex: 1 1 auto; overflow: hidden !important; }
+            #studentWrapper main > header, #appWrapper main > header { min-height: 52px; padding: 0.5rem 0.75rem !important; }
+            #studentPageTitle, #pageTitle { font-size: 0.95rem !important; }
+            
+            #studentWrapper main > div.flex-1, #appWrapper main > div.flex-1 { padding: 0.75rem !important; }
+            #studentWrapper .grid, #appWrapper .grid { min-width: 0; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <div id="loginScreen" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-slate-100 animate-in fade-in zoom-in duration-300">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl font-bold shadow-lg shadow-emerald-200">
+                    <i class="ph ph-graduation-cap"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900">AHJ Institute</h1>
+                <p class="text-slate-500 text-sm mt-1">Student & Institute Management System</p>
+            </div>
+            
+            <form onsubmit="handleStudentLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Roll Number (رول نمبر)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="ph ph-identification-card text-lg"></i></span>
+                        <input type="text" id="studentLoginRoll" placeholder="e.g. AHJ-101" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-emerald-600 focus:bg-white transition uppercase" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Password (پاس ورڈ)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="ph ph-lock text-lg"></i></span>
+                        <input type="password" id="studentLoginPass" placeholder="Enter password" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-emerald-600 focus:bg-white transition" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-200 transition text-sm flex items-center justify-center gap-2">
+                    <i class="ph ph-sign-in text-lg"></i> Sign In to Student Portal
+                </button>
+            </form>
+            
+            <div class="mt-4">
+                <button type="button" onclick="openAdmissionForm()" class="w-full py-3 border-2 border-emerald-100 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold rounded-xl transition text-sm flex items-center justify-center gap-2">
+                    <i class="ph ph-notepad text-lg"></i> Fill Online Admission Form (داخلہ فارم)
+                </button>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="openSecretAdminPrompt()" class="text-xs text-slate-400 hover:text-indigo-600 underline font-medium transition">Admin Portal Login (ایڈمن لاگ ان)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admissionModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[94vh] overflow-y-auto p-6 sm:p-8 border border-slate-200">
+            <div class="flex items-start justify-between gap-4 mb-6 border-b pb-4">
+                <div>
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-900">AHJ Institute Admission Form</h3>
+                    <p class="text-slate-500 text-sm mt-1">Fill out this form to apply for admission. (آن لائن داخلہ فارم)</p>
+                </div>
+                <button type="button" onclick="closeAdmissionForm()" class="w-10 h-10 shrink-0 rounded-xl border text-slate-500 hover:bg-slate-50 flex items-center justify-center">
+                    <i class="ph ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <form id="admissionForm" onsubmit="submitAdmissionForm(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Student Full Name (طالب علم کا نام)</label>
+                        <input type="text" id="adName" class="w-full border rounded-xl p-3 text-sm outline-none focus:border-emerald-600" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Father's Name (والد کا نام)</label>
+                        <input type="text" id="adFatherName" class="w-full border rounded-xl p-3 text-sm outline-none focus:border-emerald-600" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Date of Birth (تاریخ پیدائش)</label>
+                        <input type="date" id="adDob" class="w-full border rounded-xl p-3 text-sm bg-slate-50 outline-none focus:border-emerald-600" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Gender (جنس)</label>
+                        <select id="adGender" class="w-full border rounded-xl p-3 text-sm bg-slate-50 outline-none focus:border-emerald-600" required>
+                            <option value="">Select Gender</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Contact Phone (موبائل نمبر)</label>
+                        <input type="tel" id="adPhone" class="w-full border rounded-xl p-3 text-sm outline-none focus:border-emerald-600" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Email Address (ای میل)</label>
+                        <input type="email" id="adEmail" class="w-full border rounded-xl p-3 text-sm outline-none focus:border-emerald-600">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Home Address (پتہ)</label>
+                        <textarea id="adAddress" rows="2" class="w-full border rounded-xl p-3 text-sm outline-none focus:border-emerald-600" required></textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Select Course & Class (کورس اور کلاس منتخب کریں)</label>
+                        <select id="adCourse" class="w-full border rounded-xl p-3 text-sm bg-slate-50 outline-none focus:border-emerald-600" required></select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t mt-6">
+                    <button type="button" onclick="closeAdmissionForm()" class="w-full sm:w-auto px-5 py-3 border rounded-xl text-slate-600 font-semibold text-sm">Cancel</button>
+                    <button type="submit" class="w-full sm:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm">
+                        <i class="ph ph-paper-plane-tilt mr-1"></i> Submit Admission Form
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="adminModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[70] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-slate-200">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-bold shadow-lg shadow-indigo-200">
+                    <i class="ph ph-shield-check"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">Admin Portal Login</h3>
+                <p class="text-slate-500 text-xs mt-1">Authorized Management Access Only</p>
+            </div>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Username</label>
+                    <input type="text" id="loginUser" value="admin" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-600" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Password</label>
+                    <input type="password" id="loginPass" value="admin123" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-600" required>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeAdminModal()" class="w-1/2 py-2.5 border rounded-xl text-slate-600 font-semibold text-sm hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm shadow-sm">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="studentWrapper" class="flex h-screen overflow-hidden hidden">
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between border-r border-slate-800">
+            <div>
+                <div class="p-6 flex items-center gap-3 border-b border-slate-800">
+                    <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold text-xl">
+                        <i class="ph ph-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-white text-base leading-tight">AHJ Institute</h2>
+                        <p class="text-xs text-emerald-400 font-medium">Student Portal</p>
+                    </div>
+                </div>
+                <nav class="p-4 space-y-1.5 text-sm font-medium">
+                    <button onclick="switchStudentTab('dashboard')" id="snav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-white bg-emerald-600 shadow-sm"><i class="ph ph-squares-four text-lg"></i> Dashboard</button>
+                    <button onclick="switchStudentTab('attendance')" id="snav-attendance" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-calendar-check text-lg"></i> Attendance</button>
+                    <button onclick="switchStudentTab('results')" id="snav-results" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-chart-bar text-lg"></i> Results & Marks</button>
+                    <button onclick="switchStudentTab('courses')" id="snav-courses" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-book-open text-lg"></i> Courses & Info</button>
+                    <button onclick="switchStudentTab('schedule')" id="snav-schedule" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-calendar text-lg"></i> Timetable</button>
+                    <button onclick="switchStudentTab('announcements')" id="snav-announcements" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-megaphone text-lg"></i> Announcements</button>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition text-sm font-medium">
+                    <i class="ph ph-sign-out text-lg"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+            <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0">
+                <h3 id="studentPageTitle" class="text-xl font-bold text-slate-800">Student Dashboard</h3>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p id="topStudentName" class="text-sm font-semibold text-slate-700">Student</p>
+                        <p id="topStudentRoll" class="text-xs text-slate-400">Roll No</p>
+                    </div>
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center font-bold text-sm border border-emerald-100" id="topStudentInitials">ST</div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-8">
+                <!-- Student Dashboard Tab -->
+                <div id="stab-dashboard" class="space-y-6">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                        <div class="relative z-10">
+                            <span class="px-3 py-1 bg-emerald-500/30 text-emerald-100 text-xs font-semibold rounded-full uppercase tracking-wider">Welcome</span>
+                            <h2 id="dashWelcomeName" class="text-3xl font-extrabold mt-2">Student Name</h2>
+                            <p class="text-emerald-100 text-sm mt-1">AHJ Institute Student Portal Dashboard</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl font-bold"><i class="ph ph-calendar-check"></i></div>
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Attendance Percentage</p>
+                                <h4 id="dashAttendancePercent" class="text-2xl font-bold text-slate-800 mt-1">0%</h4>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold"><i class="ph ph-chart-bar"></i></div>
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Exam Percentage</p>
+                                <h4 id="dashResultPercent" class="text-2xl font-bold text-slate-800 mt-1">0%</h4>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl font-bold"><i class="ph ph-book-open"></i></div>
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Enrolled Course</p>
+                                <h4 id="dashCourseName" class="text-sm font-bold text-slate-800 mt-1 truncate max-w-[180px]">Course</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Attendance Tab -->
+                <div id="stab-attendance" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-lg mb-2">My Attendance Records</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                        <th class="p-3 font-semibold rounded-l-xl">Date</th>
+                                        <th class="p-3 font-semibold">Course</th>
+                                        <th class="p-3 font-semibold rounded-r-xl">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentAttendanceTableBody" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Results Tab -->
+                <div id="stab-results" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-lg mb-2">My Results & Marks</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="p-4 bg-slate-50 border rounded-xl"><p class="text-xs font-semibold text-slate-400 uppercase">Assignment (50)</p><p id="resAssignVal" class="text-2xl font-bold text-slate-800 mt-1">0</p></div>
+                            <div class="p-4 bg-slate-50 border rounded-xl"><p class="text-xs font-semibold text-slate-400 uppercase">Quiz (50)</p><p id="resQuizVal" class="text-2xl font-bold text-slate-800 mt-1">0</p></div>
+                            <div class="p-4 bg-slate-50 border rounded-xl"><p class="text-xs font-semibold text-slate-400 uppercase">Final Exam (100)</p><p id="resFinalVal" class="text-2xl font-bold text-slate-800 mt-1">0</p></div>
+                            <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl"><p class="text-xs font-semibold text-emerald-600 uppercase">Total Percentage</p><p id="resTotalPercentage" class="text-2xl font-bold text-emerald-700 mt-1">0%</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Courses Tab -->
+                <div id="stab-courses" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-lg mb-2">Course Information</h4>
+                        <div id="studentCourseDetails" class="p-6 bg-slate-50 rounded-2xl border"></div>
+                    </div>
+                </div>
+
+                <!-- Student Timetable Tab -->
+                <div id="stab-schedule" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-lg mb-2">Live Class Timetable</h4>
+                        <p class="text-sm text-slate-500 mb-6">Automatically updated according to institute administration settings.</p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                        <th class="p-3 font-semibold rounded-l-xl">Day (دن)</th>
+                                        <th class="p-3 font-semibold">Time (وقت)</th>
+                                        <th class="p-3 font-semibold">Class / Age Group</th>
+                                        <th class="p-3 font-semibold">Course</th>
+                                        <th class="p-3 font-semibold rounded-r-xl">Teacher (استاد)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTimetableTableBody" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Announcements Tab -->
+                <div id="stab-announcements" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-lg mb-4">Institute Announcements & Circulars</h4>
+                        <div id="studentAnnouncementsList" class="space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="appWrapper" class="flex h-screen overflow-hidden hidden">
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between border-r border-slate-800">
+            <div>
+                <div class="p-6 flex items-center gap-3 border-b border-slate-800">
+                    <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-xl">
+                        <i class="ph ph-shield-check"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-white text-base leading-tight">AHJ Institute</h2>
+                        <p class="text-xs text-indigo-400 font-medium">Admin Control Panel</p>
+                    </div>
+                </div>
+                <nav class="p-4 space-y-1.5 text-sm font-medium overflow-y-auto max-h-[calc(100vh-140px)]">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-white bg-indigo-600 shadow-sm"><i class="ph ph-squares-four text-lg"></i> Dashboard</button>
+                    <button onclick="switchTab('admissions')" id="nav-admissions" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-notepad text-lg"></i> Admission Applications</button>
+                    <button onclick="switchTab('students')" id="nav-students" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-users text-lg"></i> Students</button>
+                    <button onclick="switchTab('courses')" id="nav-courses" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-book-open text-lg"></i> Courses</button>
+                    <button onclick="switchTab('classes')" id="nav-classes" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-chalkboard text-lg"></i> Classes / Age Groups</button>
+                    <button onclick="switchTab('timetable')" id="nav-timetable" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-calendar text-lg"></i> Time Table</button>
+                    <button onclick="switchTab('teachers')" id="nav-teachers" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-chalkboard-teacher text-lg"></i> Teachers</button>
+                    <button onclick="switchTab('subjects')" id="nav-subjects" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-list-checks text-lg"></i> Subjects</button>
+                    <button onclick="switchTab('results')" id="nav-results" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-chart-bar text-lg"></i> Results / Marks</button>
+                    <button onclick="switchTab('attendance')" id="nav-attendance" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-calendar-check text-lg"></i> Attendance</button>
+                    <button onclick="switchTab('announcements')" id="nav-announcements" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"><i class="ph ph-megaphone text-lg"></i> Announcements</button>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition text-sm font-medium">
+                    <i class="ph ph-sign-out text-lg"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+            <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0">
+                <h3 id="pageTitle" class="text-xl font-bold text-slate-800">Dashboard Overview</h3>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-slate-700">Administrator</p>
+                        <p class="text-xs text-slate-400">AHJ Institute</p>
+                    </div>
+                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm border border-indigo-100">AD</div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-8 space-y-6">
+                <!-- Admin Dashboard Tab -->
+                <div id="tab-dashboard" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl font-bold"><i class="ph ph-users"></i></div>
+                            <div><p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Students</p><h4 id="statTotalStudents" class="text-2xl font-bold text-slate-800 mt-1">0</h4></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl font-bold"><i class="ph ph-notepad"></i></div>
+                            <div><p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending Admissions</p><h4 id="statPendingApps" class="text-2xl font-bold text-slate-800 mt-1">0</h4></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl font-bold"><i class="ph ph-book-open"></i></div>
+                            <div><p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Courses</p><h4 id="statTotalCourses" class="text-2xl font-bold text-slate-800 mt-1">0</h4></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold"><i class="ph ph-chalkboard-teacher"></i></div>
+                            <div><p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Teachers</p><h4 id="statTotalTeachers" class="text-2xl font-bold text-slate-800 mt-1">0</h4></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <h4 class="font-bold text-slate-800 text-lg mb-4">Online Database Synchronized</h4>
+                        <p class="text-sm text-slate-500">All data is instantly stored and synced to the cloud online database. Any changes made here are immediately visible to students on their devices.</p>
+                    </div>
+                </div>
+
+                <!-- Admin Admissions Tab -->
+                <div id="tab-admissions" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Admission Applications (داخلہ درخواستیں)</h4><p class="text-sm text-slate-500">Accept, Reject or Edit incoming student admission forms.</p></div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                        <th class="p-3 font-semibold rounded-l-xl">Applicant Name</th>
+                                        <th class="p-3 font-semibold">Father's Name</th>
+                                        <th class="p-3 font-semibold">Contact</th>
+                                        <th class="p-3 font-semibold">Course</th>
+                                        <th class="p-3 font-semibold">Status</th>
+                                        <th class="p-3 font-semibold text-right rounded-r-xl">Actions (Accept / Reject / Edit)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admissionsTableBody" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Students Tab -->
+                <div id="tab-students" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Students Management (طلبہ)</h4><p class="text-sm text-slate-500">Add, Edit or Delete student accounts and credentials.</p></div>
+                        <button onclick="openStudentModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm"><i class="ph ph-plus text-lg"></i> Add Student</button>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                        <th class="p-3 font-semibold rounded-l-xl">Roll No</th>
+                                        <th class="p-3 font-semibold">Name & Father Name</th>
+                                        <th class="p-3 font-semibold">Contact</th>
+                                        <th class="p-3 font-semibold">Course</th>
+                                        <th class="p-3 font-semibold">Password</th>
+                                        <th class="p-3 font-semibold text-right rounded-r-xl">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminStudentsTableBody" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Courses Tab -->
+                <div id="tab-courses" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Courses Management (کورسز)</h4><p class="text-sm text-slate-500">Add, Edit, Delete course name, duration, and class details.</p></div>
+                        <button onclick="openCourseModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm"><i class="ph ph-plus text-lg"></i> Add Course</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="adminCoursesGrid"></div>
+                </div>
+
+                <!-- Admin Classes Tab -->
+                <div id="tab-classes" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Classes / Age Groups (کلاسیں / عمر کے گروپس)</h4><p class="text-sm text-slate-500">Add, Edit or Delete student classes and age group batches.</p></div>
+                        <button onclick="openClassModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm"><i class="ph ph-plus text-lg"></i> Add Class</button>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                        <th class="p-3 font-semibold rounded-l-xl">Class / Age Group Name</th>
+                                        <th class="p-3 font-semibold">Description / Batch</th>
+                                        <th class="p-3 font-semibold text-right rounded-r-xl">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminClassesTableBody" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Timetable Tab -->
+                <div id="tab-timetable" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Time Table Management (ٹائم ٹیبل)</h4><p class="text-sm text-slate-500">Easily change Day, Time, Class, Course and Teacher.</p></div>
+                        <button onclick="openTimetableModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm"><i class="ph ph-plus text-lg"></i> Add Schedule</button>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                        <th class="p-3 font-semibold rounded-l-xl">Day (دن)</th>
+                                        <th class="p-3 font-semibold">Time (وقت)</th>
+                                        <th class="p-3 font-semibold">Class</th>
+                                        <th class="p-3 font-semibold">Course</th>
+                                        <th class="p-3 font-semibold">Teacher</th>
+                                        <th class="p-3 font-semibold text-right rounded-r-xl">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminTimetableTableBody" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Teachers Tab -->
+                <div id="tab-teachers" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Teachers Directory (اساتذہ)</h4><p class="text-sm text-slate-500">Add, Edit or Delete instructor profiles.</p></div>
+                        <button onclick="openTeacherModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm"><i class="ph ph-plus text-lg"></i> Add Teacher</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="adminTeachersGrid"></div>
+                </div>
+
+                <!-- Admin Subjects Tab -->
+                <div id="tab-subjects" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Subjects Management (مضامین)</h4><p class="text-sm text-slate-500">Add, Edit or Delete course subjects.</p></div>
+                        <button onclick="openSubjectModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm"><i class="ph ph-plus text-lg"></i> Add Subject</button>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                        <th class="p-3 font-semibold rounded-l-xl">Subject Name</th>
+                                        <th class="p-3 font-semibold">Associated Course</th>
+                                        <th class="p-3 font-semibold text-right rounded-r-xl">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminSubjectsTableBody" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Results Tab -->
+                <div id="tab-results" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Results & Marks (نتائج اور نمبر)</h4><p class="text-sm text-slate-500">Add, Edit or Update student exam marks and percentages.</p></div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                        <th class="p-3 font-semibold rounded-l-xl">Roll No</th>
+                                        <th class="p-3 font-semibold">Student Name</th>
+                                        <th class="p-3 font-semibold">Assignment (50)</th>
+                                        <th class="p-3 font-semibold">Quiz (50)</th>
+                                        <th class="p-3 font-semibold">Final Exam (100)</th>
+                                        <th class="p-3 font-semibold">Percentage</th>
+                                        <th class="p-3 font-semibold text-right rounded-r-xl">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminResultsTableBody" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Attendance Tab -->
+                <div id="tab-attendance" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-lg mb-4">Mark Daily Attendance</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label><input type="date" id="adminAttDate" class="w-full border rounded-xl p-2.5 text-sm bg-slate-50"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Select Course</label><select id="adminAttCourse" class="w-full border rounded-xl p-2.5 text-sm bg-slate-50"></select></div>
+                            <div class="flex items-end"><button onclick="loadAdminAttendance()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm">Load Sheet</button></div>
+                        </div>
+                        <div id="adminAttendanceContainer" class="hidden space-y-4">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b text-xs uppercase tracking-wider text-slate-400 bg-slate-50">
+                                            <th class="p-3 font-semibold rounded-l-xl">Roll No</th>
+                                            <th class="p-3 font-semibold">Student Name</th>
+                                            <th class="p-3 font-semibold text-right rounded-r-xl">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminAttendanceBody" class="text-sm divide-y"></tbody>
+                                </table>
+                            </div>
+                            <div class="text-right pt-4"><button onclick="saveAdminAttendance()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm">Save Attendance</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Announcements Tab -->
+                <div id="tab-announcements" class="space-y-6 hidden">
+                    <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div><h4 class="font-bold text-slate-800 text-lg">Announcements (اعانات اور نوٹس)</h4><p class="text-sm text-slate-500">Add, Edit or Delete institute notices for students.</p></div>
+                        <button onclick="openAnnouncementModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm"><i class="ph ph-plus text-lg"></i> Add Announcement</button>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <div class="space-y-4" id="adminAnnouncementsList"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Student Modal -->
+    <div id="studentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8">
+            <h3 id="studentModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add / Edit Student</h3>
+            <form onsubmit="saveStudentData(event)" class="space-y-4">
+                <input type="hidden" id="editStudentId">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Roll Number</label><input type="text" id="mRoll" class="w-full border rounded-xl p-3 text-sm uppercase font-bold" required></div>
+                    <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Password</label><input type="text" id="mPass" class="w-full border rounded-xl p-3 text-sm" required></div>
+                    <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Student Name</label><input type="text" id="mName" class="w-full border rounded-xl p-3 text-sm" required></div>
+                    <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Father Name</label><input type="text" id="mFather" class="w-full border rounded-xl p-3 text-sm" required></div>
+                    <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Phone</label><input type="text" id="mPhone" class="w-full border rounded-xl p-3 text-sm" required></div>
+                    <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Course</label><select id="mCourse" class="w-full border rounded-xl p-3 text-sm bg-slate-50" required></select></div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeStudentModal()" class="px-5 py-2.5 border rounded-xl text-slate-600 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Course Modal -->
+    <div id="courseModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+            <h3 id="courseModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add / Edit Course</h3>
+            <form onsubmit="saveCourseData(event)" class="space-y-4">
+                <input type="hidden" id="editCourseId">
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Course Name</label><input type="text" id="cName" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Duration</label><input type="text" id="cDuration" class="w-full border rounded-xl p-3 text-sm" placeholder="e.g. 3 Months" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Class / Batch Info</label><input type="text" id="cClassInfo" class="w-full border rounded-xl p-3 text-sm" placeholder="e.g. Morning Batch" required></div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeCourseModal()" class="px-5 py-2.5 border rounded-xl text-slate-600 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">Save Course</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Class Modal -->
+    <div id="classModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+            <h3 id="classModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add / Edit Class / Age Group</h3>
+            <form onsubmit="saveClassData(event)" class="space-y-4">
+                <input type="hidden" id="editClassId">
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Class / Age Group Name</label><input type="text" id="clName" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Description / Batch</label><input type="text" id="clDesc" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeClassModal()" class="px-5 py-2.5 border rounded-xl text-slate-600 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">Save Class</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Timetable Modal -->
+    <div id="timetableModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+            <h3 id="timetableModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add / Edit Time Table</h3>
+            <form onsubmit="saveTimetableData(event)" class="space-y-4">
+                <input type="hidden" id="editTimetableId">
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Day (دن)</label><select id="ttDay" class="w-full border rounded-xl p-3 text-sm bg-slate-50" required><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Time (وقت)</label><input type="text" id="ttTime" class="w-full border rounded-xl p-3 text-sm" placeholder="e.g. 10:00 AM - 12:00 PM" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Class (کلاس)</label><select id="ttClass" class="w-full border rounded-xl p-3 text-sm bg-slate-50" required></select></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Course (کورس)</label><select id="ttCourse" class="w-full border rounded-xl p-3 text-sm bg-slate-50" required></select></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Teacher (استاد)</label><select id="ttTeacher" class="w-full border rounded-xl p-3 text-sm bg-slate-50" required></select></div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeTimetableModal()" class="px-5 py-2.5 border rounded-xl text-slate-600 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">Save Timetable</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Teacher Modal -->
+    <div id="teacherModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+            <h3 id="teacherModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add / Edit Teacher</h3>
+            <form onsubmit="saveTeacherData(event)" class="space-y-4">
+                <input type="hidden" id="editTeacherId">
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Teacher Name</label><input type="text" id="tName" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Expertise / Subject</label><input type="text" id="tExpertise" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Phone Number</label><input type="text" id="tPhone" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeTeacherModal()" class="px-5 py-2.5 border rounded-xl text-slate-600 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">Save Teacher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Subject Modal -->
+    <div id="subjectModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+            <h3 id="subjectModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add / Edit Subject</h3>
+            <form onsubmit="saveSubjectData(event)" class="space-y-4">
+                <input type="hidden" id="editSubjectId">
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Subject Name</label><input type="text" id="subName" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Associated Course</label><select id="subCourse" class="w-full border rounded-xl p-3 text-sm bg-slate-50" required></select></div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeSubjectModal()" class="px-5 py-2.5 border rounded-xl text-slate-600 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">Save Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Marks Modal -->
+    <div id="marksModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+            <h3 class="text-xl font-bold text-slate-900 mb-4">Update Student Marks</h3>
+            <form onsubmit="saveMarksData(event)" class="space-y-4">
+                <input type="hidden" id="marksStudentId">
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Student</label><input type="text" id="marksStudentName" class="w-full border rounded-xl p-3 text-sm bg-slate-100 font-bold" disabled></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Assignment Marks (Max 50)</label><input type="number" id="marksAssignment" max="50" min="0" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Quiz Marks (Max 50)</label><input type="number" id="marksQuiz" max="50" min="0" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Final Exam Marks (Max 100)</label><input type="number" id="marksFinal" max="100" min="0" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeMarksModal()" class="px-5 py-2.5 border rounded-xl text-slate-600 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">Save Marks</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Announcement Modal -->
+    <div id="announcementModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+            <h3 id="announcementModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add / Edit Announcement</h3>
+            <form onsubmit="saveAnnouncementData(event)" class="space-y-4">
+                <input type="hidden" id="editAnnouncementId">
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Notice Title (عنوان)</label><input type="text" id="annTitle" class="w-full border rounded-xl p-3 text-sm" required></div>
+                <div><label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Details (تفصیل)</label><textarea id="annDesc" rows="3" class="w-full border rounded-xl p-3 text-sm" required></textarea></div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeAnnouncementModal()" class="px-5 py-2.5 border rounded-xl text-slate-600 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">Save Announcement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ahj-institute-sms';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "mock", projectId: "mock" };
+
+        let db, auth, currentUser = null;
+        let remoteSyncEnabled = false;
+
+        const defaultData = {
+            students: [
+                { id: "s1", roll: "AHJ-101", pass: "1234", name: "Ali Ahmed", father: "Muhammad Ahmed", phone: "03001234567", course: "Digital Marketing Masterclass" },
+                { id: "s2", roll: "AHJ-102", pass: "1234", name: "Fatima Noor", father: "Tariq Mahmood", phone: "03219876543", course: "Graphic Design Pro" }
+            ],
+            admissions: [
+                { id: "ad1", date: "2026-06-01", name: "Usman Ali", father: "Amjad Ali", dob: "2005-04-12", gender: "Male", phone: "03011122334", email: "usman@gmail.com", address: "Model Town Lahore", course: "Digital Marketing Masterclass", status: "Pending" }
+            ],
+            courses: [
+                { id: "c1", name: "Digital Marketing Masterclass", duration: "3 Months", classInfo: "Morning Batch (Age 16-25)" },
+                { id: "c2", name: "Graphic Design Pro", duration: "2 Months", classInfo: "Evening Batch (Age 15-30)" },
+                { id: "c3", name: "Spoken English & Freelancing", duration: "2 Months", classInfo: "Weekend Batch (All Ages)" }
+            ],
+            classes: [
+                { id: "cl1", name: "Morning Batch A", desc: "Age Group 15-20 years" },
+                { id: "cl2", name: "Evening Batch B", desc: "Age Group 21-35 years" }
+            ],
+            timetable: [
+                { id: "tt1", day: "Monday", time: "10:00 AM - 12:00 PM", class: "Morning Batch A", course: "Digital Marketing Masterclass", teacher: "Sir Bilal" },
+                { id: "tt2", day: "Tuesday", time: "02:00 PM - 04:00 PM", class: "Evening Batch B", course: "Graphic Design Pro", teacher: "Madam Ayesha" }
+            ],
+            teachers: [
+                { id: "t1", name: "Sir Bilal", expertise: "Digital Marketing & SEO", phone: "03009988776" },
+                { id: "t2", name: "Madam Ayesha", expertise: "Graphic & UI Design", phone: "03215544332" }
+            ],
+            subjects: [
+                { id: "sub1", name: "Facebook & Instagram Ads", course: "Digital Marketing Masterclass" },
+                { id: "sub2", name: "Adobe Photoshop & Illustrator", course: "Graphic Design Pro" }
+            ],
+            marks: {
+                "s1": { assignment: 45, quiz: 42, final: 88 },
+                "s2": { assignment: 48, quiz: 46, final: 92 }
+            },
+            attendance: {
+                "2026-06-01": { "AHJ-101": "Present", "AHJ-102": "Present" }
+            },
+            announcements: [
+                { id: "an1", title: "Institute Opening Ceremony", desc: "New semester classes for digital marketing will commence from Monday." }
+            ]
+        };
+
+        let dbData = JSON.parse(JSON.stringify(defaultData));
+        let activeStudent = null;
+        let isAdminLoggedIn = false;
+
+        window.onload = async function() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                remoteSyncEnabled = true;
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'institute_state');
+                onSnapshot(docRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        dbData = snapshot.data();
+                        refreshCurrentView();
+                    } else {
+                        setDoc(docRef, defaultData);
+                    }
+                }, (err) => {
+                    console.error("Firestore sync error:", err);
+                });
+            } catch (e) {
+                console.log("Running in standalone mode without remote database sync:", e);
+            }
+            populateDropdowns();
+        };
+
+        async function saveDataToCloud() {
+            if (!remoteSyncEnabled || !db) return;
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'institute_state'), dbData);
+            } catch (err) {
+                console.error("Save error:", err);
+            }
+        }
+
+        window.openSecretAdminPrompt = function() {
+            document.getElementById('adminModal').classList.remove('hidden');
+        }
+
+        window.closeAdminModal = function() {
+            document.getElementById('adminModal').classList.add('hidden');
+        }
+
+        window.handleAdminLogin = function(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value.trim();
+            if (u === 'admin' && p === 'admin123') {
+                isAdminLoggedIn = true;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('adminModal').classList.add('hidden');
+                document.getElementById('appWrapper').classList.remove('hidden');
+                switchTab('dashboard');
+            } else {
+                showToast("Invalid Admin credentials!");
+            }
+        }
+
+        window.handleStudentLogin = function(e) {
+            e.preventDefault();
+            const r = document.getElementById('studentLoginRoll').value.trim().toUpperCase();
+            const p = document.getElementById('studentLoginPass').value.trim();
+            const found = dbData.students.find(s => s.roll === r && s.pass === p);
+            if (found) {
+                activeStudent = found;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('studentWrapper').classList.remove('hidden');
+                setupStudentPortal();
+            } else {
+                showToast("Invalid Roll Number or Password!");
+            }
+        }
+
+        window.handleLogout = function() {
+            activeStudent = null;
+            isAdminLoggedIn = false;
+            document.getElementById('studentWrapper').classList.add('hidden');
+            document.getElementById('appWrapper').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        // Admission Form Public Actions
+        window.openAdmissionForm = function() {
+            populateAdmissionCourseDropdown();
+            document.getElementById('admissionModal').classList.remove('hidden');
+        }
+        window.closeAdmissionForm = function() {
+            document.getElementById('admissionModal').classList.add('hidden');
+        }
+        window.submitAdmissionForm = function(e) {
+            e.preventDefault();
+            const newApp = {
+                id: 'ad_' + Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                name: document.getElementById('adName').value,
+                father: document.getElementById('adFatherName').value,
+                dob: document.getElementById('adDob').value,
+                gender: document.getElementById('adGender').value,
+                phone: document.getElementById('adPhone').value,
+                email: document.getElementById('adEmail').value,
+                address: document.getElementById('adAddress').value,
+                course: document.getElementById('adCourse').value,
+                status: 'Pending'
+            };
+            dbData.admissions.push(newApp);
+            saveDataToCloud();
+            closeAdmissionForm();
+            showToast("Admission form submitted successfully!");
+            document.getElementById('admissionForm').reset();
+        }
+
+        function populateAdmissionCourseDropdown() {
+            const sel = document.getElementById('adCourse');
+            sel.innerHTML = dbData.courses.map(c => `<option value="${c.name}">${c.name} (${c.duration})</option>`).join('');
+        }
+
+        function populateDropdowns() {
+            const courseOpts = dbData.courses.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            const classOpts = dbData.classes.map(cl => `<option value="${cl.name}">${cl.name}</option>`).join('');
+            const teacherOpts = dbData.teachers.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+
+            const mC = document.getElementById('mCourse'); if(mC) mC.innerHTML = courseOpts;
+            const ttC = document.getElementById('ttClass'); if(ttC) ttC.innerHTML = classOpts;
+            const ttCo = document.getElementById('ttCourse'); if(ttCo) ttCo.innerHTML = courseOpts;
+            const ttT = document.getElementById('ttTeacher'); if(ttT) ttT.innerHTML = teacherOpts;
+            const subC = document.getElementById('subCourse'); if(subC) subC.innerHTML = courseOpts;
+            const attC = document.getElementById('attCourse'); if(attC) attC.innerHTML = courseOpts;
+            const admAttC = document.getElementById('adminAttCourse'); if(admAttC) admAttC.innerHTML = courseOpts;
+        }
+
+        // Student Portal Switcher
+        window.switchStudentTab = function(tabKey) {
+            ['dashboard', 'attendance', 'results', 'courses', 'schedule', 'announcements'].forEach(k => {
+                const el = document.getElementById('stab-' + k);
+                const btn = document.getElementById('snav-' + k);
+                if(el) el.classList.add('hidden');
+                if(btn) { btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white"; }
+            });
+            const targetEl = document.getElementById('stab-' + tabKey);
+            const targetBtn = document.getElementById('snav-' + tabKey);
+            if(targetEl) targetEl.classList.remove('hidden');
+            if(targetBtn) targetBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-white bg-emerald-600 shadow-sm";
+            document.getElementById('studentPageTitle').innerText = tabKey.charAt(0).toUpperCase() + tabKey.slice(1);
+            setupStudentPortal();
+        }
+
+        function setupStudentPortal() {
+            if(!activeStudent) return;
+            document.getElementById('topStudentName').innerText = activeStudent.name;
+            document.getElementById('topStudentRoll').innerText = activeStudent.roll;
+            document.getElementById('dashWelcomeName').innerText = activeStudent.name;
+            document.getElementById('dashCourseName').innerText = activeStudent.course;
+            document.getElementById('topStudentInitials').innerText = activeStudent.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+
+            // Attendance Calculation
+            let totalDays = 0, presentDays = 0;
+            let attHtml = '';
+            for(let date in dbData.attendance) {
+                const stStatus = dbData.attendance[date][activeStudent.roll];
+                if(stStatus) {
+                    totalDays++;
+                    if(stStatus === 'Present') presentDays++;
+                    attHtml += `<tr class="border-b"><td class="p-3">${date}</td><td class="p-3">${activeStudent.course}</td><td class="p-3"><span class="px-2.5 py-1 text-xs font-bold rounded-lg ${stStatus==='Present'?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-700'}">${stStatus}</span></td></tr>`;
+                }
+            }
+            document.getElementById('studentAttendanceTableBody').innerHTML = attHtml || `<tr><td colspan="3" class="p-4 text-center text-slate-400">No attendance records found yet.</td></tr>`;
+            const attPct = totalDays > 0 ? Math.round((presentDays/totalDays)*100) : 100;
+            document.getElementById('dashAttendancePercent').innerText = attPct + '%';
+
+            // Results
+            const marks = dbData.marks[activeStudent.roll] || { assignment: 0, quiz: 0, final: 0 };
+            document.getElementById('resAssignVal').innerText = marks.assignment + '/50';
+            document.getElementById('resQuizVal').innerText = marks.quiz + '/50';
+            document.getElementById('resFinalVal').innerText = marks.final + '/100';
+            const totalScore = marks.assignment + marks.quiz + marks.final;
+            const resPct = Math.round((totalScore / 200) * 100);
+            document.getElementById('resTotalPercentage').innerText = resPct + '%';
+            document.getElementById('dashResultPercent').innerText = resPct + '%';
+
+            // Course Info
+            const courseObj = dbData.courses.find(c => c.name === activeStudent.course) || { name: activeStudent.course, duration: '3 Months', classInfo: 'Standard Batch' };
+            document.getElementById('studentCourseDetails').innerHTML = `
+                <h5 class="font-bold text-slate-900 text-base mb-1">${courseObj.name}</h5>
+                <p class="text-sm text-slate-600 mb-2">Duration: <span class="font-semibold">${courseObj.duration}</span></p>
+                <p class="text-sm text-slate-600">Class Info: <span class="font-semibold">${courseObj.classInfo}</span></p>
+            `;
+
+            // Timetable
+            document.getElementById('studentTimetableTableBody').innerHTML = dbData.timetable.map(tt => `
+                <tr class="border-b"><td class="p-3 font-semibold">${tt.day}</td><td class="p-3">${tt.time}</td><td class="p-3">${tt.class}</td><td class="p-3">${tt.course}</td><td class="p-3 text-emerald-600 font-semibold">${tt.teacher}</td></tr>
+            `).join('') || `<tr><td colspan="5" class="p-4 text-center text-slate-400">No timetable scheduled yet.</td></tr>`;
+
+            // Announcements
+            document.getElementById('studentAnnouncementsList').innerHTML = dbData.announcements.map(an => `
+                <div class="p-4 bg-slate-50 border rounded-2xl"><h5 class="font-bold text-slate-800 text-base mb-1">${an.title}</h5><p class="text-sm text-slate-600">${an.desc}</p></div>
+            `).join('') || `<p class="text-slate-400">No announcements right now.</p>`;
+        }
+
+        // Admin Portal Switcher
+        window.switchTab = function(tabKey) {
+            ['dashboard', 'admissions', 'students', 'courses', 'classes', 'timetable', 'teachers', 'subjects', 'results', 'attendance', 'announcements'].forEach(k => {
+                const el = document.getElementById('tab-' + k);
+                const btn = document.getElementById('nav-' + k);
+                if(el) el.classList.add('hidden');
+                if(btn) btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition hover:bg-slate-800 text-slate-400 hover:text-white";
+            });
+            const targetEl = document.getElementById('tab-' + tabKey);
+            const targetBtn = document.getElementById('nav-' + tabKey);
+            if(targetEl) targetEl.classList.remove('hidden');
+            if(targetBtn) targetBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-white bg-indigo-600 shadow-sm";
+            document.getElementById('pageTitle').innerText = tabKey.charAt(0).toUpperCase() + tabKey.slice(1);
+            renderAdminViews();
+        }
+
+        function renderAdminViews() {
+            populateDropdowns();
+            // Stats
+            document.getElementById('statTotalStudents').innerText = dbData.students.length;
+            document.getElementById('statPendingApps').innerText = dbData.admissions.filter(a => a.status === 'Pending').length;
+            document.getElementById('statTotalCourses').innerText = dbData.courses.length;
+            document.getElementById('statTotalTeachers').innerText = dbData.teachers.length;
+
+            // Admissions
+            document.getElementById('admissionsTableBody').innerHTML = dbData.admissions.map(ad => `
+                <tr class="border-b">
+                    <td class="p-3 font-semibold">${ad.name}</td>
+                    <td class="p-3">${ad.father}</td>
+                    <td class="p-3">${ad.phone}</td>
+                    <td class="p-3">${ad.course}</td>
+                    <td class="p-3"><span class="px-2.5 py-1 text-xs font-bold rounded-lg ${ad.status==='Accepted'?'bg-emerald-100 text-emerald-700':ad.status==='Rejected'?'bg-red-100 text-red-700':'bg-amber-100 text-amber-700'}">${ad.status}</span></td>
+                    <td class="p-3 text-right space-x-1">
+                        ${ad.status === 'Pending' ? `
+                            <button onclick="acceptAdmission('${ad.id}')" class="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold">Accept</button>
+                            <button onclick="rejectAdmission('${ad.id}')" class="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-bold">Reject</button>
+                        ` : ''}
+                        <button onclick="editAdmission('${ad.id}')" class="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">Edit</button>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="6" class="p-4 text-center text-slate-400">No admission applications.</td></tr>`;
+
+            // Students
+            document.getElementById('adminStudentsTableBody').innerHTML = dbData.students.map(st => `
+                <tr class="border-b">
+                    <td class="p-3 font-bold text-indigo-600">${st.roll}</td>
+                    <td class="p-3"><p class="font-semibold">${st.name}</p><p class="text-xs text-slate-400">S/o ${st.father}</p></td>
+                    <td class="p-3">${st.phone}</td>
+                    <td class="p-3">${st.course}</td>
+                    <td class="p-3 font-mono">${st.pass}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="editStudent('${st.id}')" class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold">Edit</button>
+                        <button onclick="deleteStudent('${st.id}')" class="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold">Delete</button>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="6" class="p-4 text-center text-slate-400">No students enrolled.</td></tr>`;
+
+            // Courses
+            document.getElementById('adminCoursesGrid').innerHTML = dbData.courses.map(c => `
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h5 class="font-bold text-slate-900 text-lg mb-1">${c.name}</h5>
+                        <p class="text-sm text-slate-500 mb-2">Duration: <span class="font-semibold text-slate-700">${c.duration}</span></p>
+                        <p class="text-sm text-slate-500">Class Info: <span class="font-semibold text-slate-700">${c.classInfo}</span></p>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-4 mt-4 border-t">
+                        <button onclick="editCourse('${c.id}')" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold">Edit Course</button>
+                        <button onclick="deleteCourse('${c.id}')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Classes
+            document.getElementById('adminClassesTableBody').innerHTML = dbData.classes.map(cl => `
+                <tr class="border-b">
+                    <td class="p-3 font-semibold">${cl.name}</td>
+                    <td class="p-3">${cl.desc}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="editClass('${cl.id}')" class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold">Edit</button>
+                        <button onclick="deleteClass('${cl.id}')" class="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold">Delete</button>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="3" class="p-4 text-center text-slate-400">No classes defined.</td></tr>`;
+
+            // Timetable
+            document.getElementById('adminTimetableTableBody').innerHTML = dbData.timetable.map(tt => `
+                <tr class="border-b">
+                    <td class="p-3 font-semibold">${tt.day}</td>
+                    <td class="p-3">${tt.time}</td>
+                    <td class="p-3">${tt.class}</td>
+                    <td class="p-3">${tt.course}</td>
+                    <td class="p-3 font-semibold text-indigo-600">${tt.teacher}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="editTimetable('${tt.id}')" class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold">Edit</button>
+                        <button onclick="deleteTimetable('${tt.id}')" class="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold">Delete</button>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="6" class="p-4 text-center text-slate-400">No timetable scheduled.</td></tr>`;
+
+            // Teachers
+            document.getElementById('adminTeachersGrid').innerHTML = dbData.teachers.map(t => `
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h5 class="font-bold text-slate-900 text-lg mb-1">${t.name}</h5>
+                        <p class="text-sm text-slate-500 mb-1">Expertise: <span class="font-semibold">${t.expertise}</span></p>
+                        <p class="text-sm text-slate-500">Phone: <span class="font-semibold">${t.phone}</span></p>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-4 mt-4 border-t">
+                        <button onclick="editTeacher('${t.id}')" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold">Edit</button>
+                        <button onclick="deleteTeacher('${t.id}')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Subjects
+            document.getElementById('adminSubjectsTableBody').innerHTML = dbData.subjects.map(sub => `
+                <tr class="border-b">
+                    <td class="p-3 font-semibold">${sub.name}</td>
+                    <td class="p-3">${sub.course}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="editSubject('${sub.id}')" class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold">Edit</button>
+                        <button onclick="deleteSubject('${sub.id}')" class="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold">Delete</button>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="3" class="p-4 text-center text-slate-400">No subjects defined.</td></tr>`;
+
+            // Results
+            document.getElementById('adminResultsTableBody').innerHTML = dbData.students.map(st => {
+                const m = dbData.marks[st.roll] || { assignment: 0, quiz: 0, final: 0 };
+                const pct = Math.round(((m.assignment + m.quiz + m.final) / 200) * 100);
+                return `
+                    <tr class="border-b">
+                        <td class="p-3 font-bold text-indigo-600">${st.roll}</td>
+                        <td class="p-3 font-semibold">${st.name}</td>
+                        <td class="p-3">${m.assignment}/50</td>
+                        <td class="p-3">${m.quiz}/50</td>
+                        <td class="p-3">${m.final}/100</td>
+                        <td class="p-3 font-bold text-emerald-600">${pct}%</td>
+                        <td class="p-3 text-right"><button onclick="openMarksModal('${st.roll}')" class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold">Update Marks</button></td>
+                    </tr>
+                `;
+            }).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No students available.</td></tr>`;
+
+            // Announcements
+            document.getElementById('adminAnnouncementsList').innerHTML = dbData.announcements.map(an => `
+                <div class="p-4 bg-slate-50 border rounded-2xl flex justify-between items-start">
+                    <div><h5 class="font-bold text-slate-800 text-base mb-1">${an.title}</h5><p class="text-sm text-slate-600">${an.desc}</p></div>
+                    <div class="space-x-1 shrink-0">
+                        <button onclick="editAnnouncement('${an.id}')" class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold">Edit</button>
+                        <button onclick="deleteAnnouncement('${an.id}')" class="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold">Delete</button>
+                    </div>
+                </div>
+            `).join('') || `<p class="text-slate-400">No announcements.</p>`;
+        }
+
+        // Admission Actions
+        window.acceptAdmission = function(id) {
+            const ad = dbData.admissions.find(a => a.id === id);
+            if(ad) {
+                ad.status = 'Accepted';
+                const newRoll = 'AHJ-' + (100 + dbData.students.length + 1);
+                dbData.students.push({
+                    id: 's_' + Date.now(),
+                    roll: newRoll,
+                    pass: '1234',
+                    name: ad.name,
+                    father: ad.father,
+                    phone: ad.phone,
+                    course: ad.course
+                });
+                saveDataToCloud();
+                renderAdminViews();
+                showToast(`Admission accepted! Roll Number assigned: ${newRoll}`);
+            }
+        }
+        window.rejectAdmission = function(id) {
+            const ad = dbData.admissions.find(a => a.id === id);
+            if(ad) { ad.status = 'Rejected'; saveDataToCloud(); renderAdminViews(); }
+        }
+        window.editAdmission = function(id) {
+            const ad = dbData.admissions.find(a => a.id === id);
+            if(ad) {
+                const newName = prompt("Edit Student Name:", ad.name);
+                if(newName) { ad.name = newName; saveDataToCloud(); renderAdminViews(); }
+            }
+        }
+
+        // Student CRUD
+        window.openStudentModal = function() {
+            document.getElementById('editStudentId').value = '';
+            document.getElementById('mRoll').value = 'AHJ-' + (100 + dbData.students.length + 1);
+            document.getElementById('mPass').value = '1234';
+            document.getElementById('mName').value = '';
+            document.getElementById('mFather').value = '';
+            document.getElementById('mPhone').value = '';
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+        window.closeStudentModal = function() { document.getElementById('studentModal').classList.add('hidden'); }
+        window.editStudent = function(id) {
+            const st = dbData.students.find(s => s.id === id);
+            if(st) {
+                document.getElementById('editStudentId').value = st.id;
+                document.getElementById('mRoll').value = st.roll;
+                document.getElementById('mPass').value = st.pass;
+                document.getElementById('mName').value = st.name;
+                document.getElementById('mFather').value = st.father;
+                document.getElementById('mPhone').value = st.phone;
+                document.getElementById('mCourse').value = st.course;
+                document.getElementById('studentModal').classList.remove('hidden');
+            }
+        }
+        window.saveStudentData = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editStudentId').value;
+            const data = {
+                id: id || 's_' + Date.now(),
+                roll: document.getElementById('mRoll').value.toUpperCase(),
+                pass: document.getElementById('mPass').value,
+                name: document.getElementById('mName').value,
+                father: document.getElementById('mFather').value,
+                phone: document.getElementById('mPhone').value,
+                course: document.getElementById('mCourse').value
+            };
+            if(id) {
+                const idx = dbData.students.findIndex(s => s.id === id);
+                if(idx !== -1) dbData.students[idx] = data;
+            } else {
+                dbData.students.push(data);
+            }
+            saveDataToCloud();
+            closeStudentModal();
+            renderAdminViews();
+        }
+        window.deleteStudent = function(id) {
+            if(confirm("Are you sure you want to delete this student?")) {
+                dbData.students = dbData.students.filter(s => s.id !== id);
+                saveDataToCloud();
+                renderAdminViews();
+            }
+        }
+
+        // Course CRUD
+        window.openCourseModal = function() {
+            document.getElementById('editCourseId').value = '';
+            document.getElementById('cName').value = '';
+            document.getElementById('cDuration').value = '';
+            document.getElementById('cClassInfo').value = '';
+            document.getElementById('courseModal').classList.remove('hidden');
+        }
+        window.closeCourseModal = function() { document.getElementById('courseModal').classList.add('hidden'); }
+        window.editCourse = function(id) {
+            const c = dbData.courses.find(item => item.id === id);
+            if(c) {
+                document.getElementById('editCourseId').value = c.id;
+                document.getElementById('cName').value = c.name;
+                document.getElementById('cDuration').value = c.duration;
+                document.getElementById('cClassInfo').value = c.classInfo;
+                document.getElementById('courseModal').classList.remove('hidden');
+            }
+        }
+        window.saveCourseData = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editCourseId').value;
+            const data = {
+                id: id || 'c_' + Date.now(),
+                name: document.getElementById('cName').value,
+                duration: document.getElementById('cDuration').value,
+                classInfo: document.getElementById('cClassInfo').value
+            };
+            if(id) {
+                const idx = dbData.courses.findIndex(item => item.id === id);
+                if(idx !== -1) dbData.courses[idx] = data;
+            } else {
+                dbData.courses.push(data);
+            }
+            saveDataToCloud();
+            closeCourseModal();
+            renderAdminViews();
+        }
+        window.deleteCourse = function(id) {
+            if(confirm("Delete this course?")) {
+                dbData.courses = dbData.courses.filter(item => item.id !== id);
+                saveDataToCloud();
+                renderAdminViews();
+            }
+        }
+
+        // Class CRUD
+        window.openClassModal = function() {
+            document.getElementById('editClassId').value = '';
+            document.getElementById('clName').value = '';
+            document.getElementById('clDesc').value = '';
+            document.getElementById('classModal').classList.remove('hidden');
+        }
+        window.closeClassModal = function() { document.getElementById('classModal').classList.add('hidden'); }
+        window.editClass = function(id) {
+            const cl = dbData.classes.find(item => item.id === id);
+            if(cl) {
+                document.getElementById('editClassId').value = cl.id;
+                document.getElementById('clName').value = cl.name;
+                document.getElementById('clDesc').value = cl.desc;
+                document.getElementById('classModal').classList.remove('hidden');
+            }
+        }
+        window.saveClassData = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editClassId').value;
+            const data = {
+                id: id || 'cl_' + Date.now(),
+                name: document.getElementById('clName').value,
+                desc: document.getElementById('clDesc').value
+            };
+            if(id) {
+                const idx = dbData.classes.findIndex(item => item.id === id);
+                if(idx !== -1) dbData.classes[idx] = data;
+            } else {
+                dbData.classes.push(data);
+            }
+            saveDataToCloud();
+            closeClassModal();
+            renderAdminViews();
+        }
+        window.deleteClass = function(id) {
+            if(confirm("Delete this class?")) {
+                dbData.classes = dbData.classes.filter(item => item.id !== id);
+                saveDataToCloud();
+                renderAdminViews();
+            }
+        }
+
+        // Timetable CRUD
+        window.openTimetableModal = function() {
+            document.getElementById('editTimetableId').value = '';
+            document.getElementById('ttTime').value = '';
+            document.getElementById('timetableModal').classList.remove('hidden');
+        }
+        window.closeTimetableModal = function() { document.getElementById('timetableModal').classList.add('hidden'); }
+        window.editTimetable = function(id) {
+            const tt = dbData.timetable.find(item => item.id === id);
+            if(tt) {
+                document.getElementById('editTimetableId').value = tt.id;
+                document.getElementById('ttDay').value = tt.day;
+                document.getElementById('ttTime').value = tt.time;
+                document.getElementById('ttClass').value = tt.class;
+                document.getElementById('ttCourse').value = tt.course;
+                document.getElementById('ttTeacher').value = tt.teacher;
+                document.getElementById('timetableModal').classList.remove('hidden');
+            }
+        }
+        window.saveTimetableData = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editTimetableId').value;
+            const data = {
+                id: id || 'tt_' + Date.now(),
+                day: document.getElementById('ttDay').value,
+                time: document.getElementById('ttTime').value,
+                class: document.getElementById('ttClass').value,
+                course: document.getElementById('ttCourse').value,
+                teacher: document.getElementById('ttTeacher').value
+            };
+            if(id) {
+                const idx = dbData.timetable.findIndex(item => item.id === id);
+                if(idx !== -1) dbData.timetable[idx] = data;
+            } else {
+                dbData.timetable.push(data);
+            }
+            saveDataToCloud();
+            closeTimetableModal();
+            renderAdminViews();
+        }
+        window.deleteTimetable = function(id) {
+            if(confirm("Delete schedule?")) {
+                dbData.timetable = dbData.timetable.filter(item => item.id !== id);
+                saveDataToCloud();
+                renderAdminViews();
+            }
+        }
+
+        // Teacher CRUD
+        window.openTeacherModal = function() {
+            document.getElementById('editTeacherId').value = '';
+            document.getElementById('tName').value = '';
+            document.getElementById('tExpertise').value = '';
+            document.getElementById('tPhone').value = '';
+            document.getElementById('teacherModal').classList.remove('hidden');
+        }
+        window.closeTeacherModal = function() { document.getElementById('teacherModal').classList.add('hidden'); }
+        window.editTeacher = function(id) {
+            const t = dbData.teachers.find(item => item.id === id);
+            if(t) {
+                document.getElementById('editTeacherId').value = t.id;
+                document.getElementById('tName').value = t.name;
+                document.getElementById('tExpertise').value = t.expertise;
+                document.getElementById('tPhone').value = t.phone;
+                document.getElementById('teacherModal').classList.remove('hidden');
+            }
+        }
+        window.saveTeacherData = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editTeacherId').value;
+            const data = {
+                id: id || 't_' + Date.now(),
+                name: document.getElementById('tName').value,
+                expertise: document.getElementById('tExpertise').value,
+                phone: document.getElementById('tPhone').value
+            };
+            if(id) {
+                const idx = dbData.teachers.findIndex(item => item.id === id);
+                if(idx !== -1) dbData.teachers[idx] = data;
+            } else {
+                dbData.teachers.push(data);
+            }
+            saveDataToCloud();
+            closeTeacherModal();
+            renderAdminViews();
+        }
+        window.deleteTeacher = function(id) {
+            if(confirm("Delete teacher?")) {
+                dbData.teachers = dbData.teachers.filter(item => item.id !== id);
+                saveDataToCloud();
+                renderAdminViews();
+            }
+        }
+
+        // Subject CRUD
+        window.openSubjectModal = function() {
+            document.getElementById('editSubjectId').value = '';
+            document.getElementById('subName').value = '';
+            document.getElementById('subjectModal').classList.remove('hidden');
+        }
+        window.closeSubjectModal = function() { document.getElementById('subjectModal').classList.add('hidden'); }
+        window.editSubject = function(id) {
+            const sub = dbData.subjects.find(item => item.id === id);
+            if(sub) {
+                document.getElementById('editSubjectId').value = sub.id;
+                document.getElementById('subName').value = sub.name;
+                document.getElementById('subCourse').value = sub.course;
+                document.getElementById('subjectModal').classList.remove('hidden');
+            }
+        }
+        window.saveSubjectData = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editSubjectId').value;
+            const data = {
+                id: id || 'sub_' + Date.now(),
+                name: document.getElementById('subName').value,
+                course: document.getElementById('subCourse').value
+            };
+            if(id) {
+                const idx = dbData.subjects.findIndex(item => item.id === id);
+                if(idx !== -1) dbData.subjects[idx] = data;
+            } else {
+                dbData.subjects.push(data);
+            }
+            saveDataToCloud();
+            closeSubjectModal();
+            renderAdminViews();
+        }
+        window.deleteSubject = function(id) {
+            if(confirm("Delete subject?")) {
+                dbData.subjects = dbData.subjects.filter(item => item.id !== id);
+                saveDataToCloud();
+                renderAdminViews();
+            }
+        }
+
+        // Marks Update
+        window.openMarksModal = function(roll) {
+            const st = dbData.students.find(s => s.roll === roll);
+            if(!st) return;
+            document.getElementById('marksStudentId').value = roll;
+            document.getElementById('marksStudentName').value = `${st.roll} - ${st.name}`;
+            const m = dbData.marks[roll] || { assignment: 0, quiz: 0, final: 0 };
+            document.getElementById('marksAssignment').value = m.assignment;
+            document.getElementById('marksQuiz').value = m.quiz;
+            document.getElementById('marksFinal').value = m.final;
+            document.getElementById('marksModal').classList.remove('hidden');
+        }
+        window.closeMarksModal = function() { document.getElementById('marksModal').classList.add('hidden'); }
+        window.saveMarksData = function(e) {
+            e.preventDefault();
+            const roll = document.getElementById('marksStudentId').value;
+            dbData.marks[roll] = {
+                assignment: parseInt(document.getElementById('marksAssignment').value) || 0,
+                quiz: parseInt(document.getElementById('marksQuiz').value) || 0,
+                final: parseInt(document.getElementById('marksFinal').value) || 0
+            };
+            saveDataToCloud();
+            closeMarksModal();
+            renderAdminViews();
+            showToast("Marks updated successfully!");
+        }
+
+        // Announcement CRUD
+        window.openAnnouncementModal = function() {
+            document.getElementById('editAnnouncementId').value = '';
+            document.getElementById('annTitle').value = '';
+            document.getElementById('annDesc').value = '';
+            document.getElementById('announcementModal').classList.remove('hidden');
+        }
+        window.closeAnnouncementModal = function() { document.getElementById('announcementModal').classList.add('hidden'); }
+        window.editAnnouncement = function(id) {
+            const an = dbData.announcements.find(item => item.id === id);
+            if(an) {
+                document.getElementById('editAnnouncementId').value = an.id;
+                document.getElementById('annTitle').value = an.title;
+                document.getElementById('annDesc').value = an.desc;
+                document.getElementById('announcementModal').classList.remove('hidden');
+            }
+        }
+        window.saveAnnouncementData = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editAnnouncementId').value;
+            const data = {
+                id: id || 'an_' + Date.now(),
+                title: document.getElementById('annTitle').value,
+                desc: document.getElementById('annDesc').value
+            };
+            if(id) {
+                const idx = dbData.announcements.findIndex(item => item.id === id);
+                if(idx !== -1) dbData.announcements[idx] = data;
+            } else {
+                dbData.announcements.push(data);
+            }
+            saveDataToCloud();
+            closeAnnouncementModal();
+            renderAdminViews();
+        }
+        window.deleteAnnouncement = function(id) {
+            if(confirm("Delete announcement?")) {
+                dbData.announcements = dbData.announcements.filter(item => item.id !== id);
+                saveDataToCloud();
+                renderAdminViews();
+            }
+        }
+
+        // Attendance Sheet Admin
+        window.loadAdminAttendance = function() {
+            const date = document.getElementById('adminAttDate').value;
+            const course = document.getElementById('adminAttCourse').value;
+            if(!date) { showToast("Please select a date."); return; }
+            const filtered = dbData.students.filter(s => s.course === course);
+            if(filtered.length === 0) {
+                showToast("No students enrolled in this course.");
+                return;
+            }
+            if(!dbData.attendance[date]) dbData.attendance[date] = {};
+            document.getElementById('adminAttendanceBody').innerHTML = filtered.map(st => {
+                const status = dbData.attendance[date][st.roll] || 'Present';
+                return `
+                    <tr class="border-b">
+                        <td class="p-3 font-bold">${st.roll}</td>
+                        <td class="p-3">${st.name}</td>
+                        <td class="p-3 text-right">
+                            <select onchange="updateAttendanceState('${date}', '${st.roll}', this.value)" class="border rounded-lg p-1.5 text-xs font-semibold bg-slate-50">
+                                <option ${status==='Present'?'selected':''}>Present</option>
+                                <option ${status==='Absent'?'selected':''}>Absent</option>
+                                <option ${status==='Leave'?'selected':''}>Leave</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            document.getElementById('adminAttendanceContainer').classList.remove('hidden');
+        }
+
+        window.updateAttendanceState = function(date, roll, status) {
+            if(!dbData.attendance[date]) dbData.attendance[date] = {};
+            dbData.attendance[date][roll] = status;
+        }
+
+        window.saveAdminAttendance = function() {
+            saveDataToCloud();
+            showToast("Attendance saved successfully!");
+        }
+
+        window.loadAttendanceSheet = function() {
+            // Student side dummy loader or handled automatically
+        }
+
+        window.markAllAttendance = function(status) {
+            // Helper for bulk marking
+        }
+
+        function refreshCurrentView() {
+            if(isAdminLoggedIn) {
+                renderAdminViews();
+            } else if(activeStudent) {
+                const updated = dbData.students.find(s => s.roll === activeStudent.roll);
+                if(updated) { activeStudent = updated; setupStudentPortal(); }
+            }
+        }
+
+        function showToast(msg) {
+            const d = document.createElement('div');
+            d.className = "fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl z-[100] text-sm font-semibold animate-in fade-in slide-in-from-bottom-5";
+            d.innerText = msg;
+            document.body.appendChild(d);
+            setTimeout(() => d.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
